@@ -52,6 +52,12 @@ gulp.task('copy:vendorStyles', function() {
 			prefix: 5
 		}));
 });
+gulp.task('copy:vendorIcons', function() {
+	return gulp.src('./src/vendor/semantic/src/themes/default/assets/**/*')
+		.pipe(gcopy('./dist/vendor/semantic/themes', {
+			prefix: 5
+		}));
+});
 gulp.task('copy:fonts', function() {
 	return gulp.src('./src/fonts/**/*')
 		.pipe(gcopy('./dist/fonts', {
@@ -129,7 +135,7 @@ gulp.task('watch', function() {
 
 // gulp.task('init', ['clean:all', 'copy:html', 'copy:fonts', 'copy:images', 'copy:vendorStyles', 'styles']);
 gulp.task('init', function(done) {
-	runSequence('clean:all', ['copy:html', 'copy:fonts', 'copy:images', 'copy:vendorStyles', 'styles'], done);
+	runSequence('clean:all', ['copy:html', 'copy:fonts', 'copy:images', 'copy:vendorStyles', 'copy:vendorIcons', 'styles'], done);
 });
 
 // gulp.task('build', ['clean:js', 'build:webpack']);
