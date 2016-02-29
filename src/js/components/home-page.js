@@ -40,8 +40,6 @@ class HomePage extends React.Component {
 	componentDidMount() {
 		moviesCatalogApi.getPremiers()
 			.then(movies => {
-				console.info('These are the premier movies:');
-				console.dir(movies);
 				this.setState({premierMovies: movies});
 			})
 			.catch(err => {

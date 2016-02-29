@@ -21,7 +21,7 @@ function loadPremiers() {
 		getHtml(PREMIERS_MOVIES_URL)
 			.then(premiersDocument => {
 				console.timeEnd('Load premiers');
-				let movies;
+				/*let movies;
 				let cachedPremiers = lscache.get(CACHE_PREMIERS_KEY) || [];
 
 				if (cachedPremiers.length) {
@@ -35,16 +35,14 @@ function loadPremiers() {
 					movies = raw.map(movieEl => {
 						return new MovieModel(movieEl, 'htmlElement');
 					});
-				}				
+				}*/		
 
-				// console.time('Parse premiers');				
-				// let movies = [...premiersDocument.querySelectorAll('.showpeliculas .postsh')].map(movieEl => {
-				// 	return new MovieModel(movieEl, 'htmlElement');
-				// });
-				// console.timeEnd('Parse premiers');
-				// console.log('MoviesCatalogApi::loadPremiers# Storing movies:', movies.length);
-				// lscache.set(CACHE_PREMIERS_KEY, movies, CACHE_MOVIES_TTL); // Last parameter is TTL in minutes
-				console.debug('MoviesCatalogApi::loadPremiers# Returning movies:', movies.length);
+				console.time('Parse premiers');				
+				let movies = [...premiersDocument.querySelectorAll('.showpeliculas .postsh')].map(movieEl => {
+					return new MovieModel(movieEl, 'htmlElement');
+				});
+				console.timeEnd('Parse premiers');
+				lscache.set(CACHE_PREMIERS_KEY, movies, CACHE_MOVIES_TTL); // Last parameter is TTL in minutes
 				resolve(movies);
 			})
 			.catch(reject);
@@ -57,11 +55,6 @@ function getNewPremiers() {
 		
 		loadPremiers()
 			.then(movies => {
-				// let newMovies = movies.filter((movie) => {
-				// 	return cachedPremiers.findIndex(listItem => { return listItem.cpId === movie.cpId; }) === -1;
-				// });
-				// console.log(`New premiers list length: ${newMovies.length}`);
-				// resolve(newMovies);
 				resolve(movies.filter((movie) => {
 					return cachedPremiers.findIndex(listItem => { return listItem.cpId === movie.cpId; }) === -1;
 				}));
