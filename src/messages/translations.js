@@ -22,6 +22,14 @@ export default {
 		'es': 'Recientes',
 		'en': 'Recently added'
 	},
+	'home-page.loading-message.1': {
+		'es': 'Danos un momentito',
+		'en': 'Gives a little moment'
+	},
+	'home-page.loading-message.2': {
+		'es': 'Estamos buscando las últimas pelis...',
+		'en': 'We\'re looking for the latest movies...'
+	},
 	'home-page.new-premiers-message.1': {
 		'es': 'Hay nuevos estrenos disponibles.',
 		'en': 'There are new premier movies available.'

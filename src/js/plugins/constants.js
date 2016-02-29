@@ -1,6 +1,7 @@
 let constants = Object.freeze({
 	events: {
 		'NEW_PREMIERS_AVAILABLE': 'NEW_PREMIERS_AVAILABLE',
+		'NEW_MOVIES_AVAILABLE': 'NEW_MOVIES_AVAILABLE',
 		'SECTION_SELECTED': 'SECTION_SELECTED'
 	},
 	sections: {

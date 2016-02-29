@@ -3,6 +3,7 @@ import eventsManager from '../plugins/events-manager';
 import constants from '../plugins/constants';
 import { getText } from '../plugins/i18n';
 import * as moviesCatalogApi from '../api/movies-catalog';
+import MovieSummary from './movie-summary';
 
 class HomePage extends React.Component {
 
@@ -10,18 +11,18 @@ class HomePage extends React.Component {
 		super();
 
 		this.state = {
-			premierMovies: [],
-			newPremierMovies: [],
+			movies: [],
+			newMovies: [],
 			selectedSection: constants.sections.premiers
 		};
 
-		this.onNewPremiersAvailable = this.receiveNewPremiers.bind(this);
+		this.onNewMoviesAvailable = this.receiveNewMovies.bind(this);
 		this.onNewSectionSelected = this.updateVisibleSection.bind(this);
 	}
 
-	receiveNewPremiers(newPremierMovies) {
+	receiveNewMovies(newMovies) {
 		this.setState({
-			newPremierMovies
+			newMovies
 		});
 	}
 
@@ -29,54 +30,68 @@ class HomePage extends React.Component {
 		console.debug('HomePage::updateVisibleSection# TODO');
 	}
 
-	onLoadNewPremiersClick(event) {
+	onLoadNewMoviesClick(event) {
 		event.preventDefault();
 		this.setState({
-			premierMovies: this.state.newPremierMovies.concat(this.state.premierMovies),
-			newPremierMovies: []
+			movies: this.state.newMovies.concat(this.state.movies),
+			newMovies: []
 		});
 	}
 
 	componentDidMount() {
 		moviesCatalogApi.getPremiers()
+		// moviesCatalogApi.getRecentlyAdded()
 			.then(movies => {
-				this.setState({premierMovies: movies});
+				this.setState({movies});
 			})
 			.catch(err => {
 				console.error(err);
 				console.error(err.stack);
 			});
 
-		eventsManager.on(constants.events.NEW_PREMIERS_AVAILABLE, this.onNewPremiersAvailable);
+		eventsManager.on(constants.events.NEW_MOVIES_AVAILABLE, this.onNewMoviesAvailable);
 		eventsManager.on(constants.events.SECTION_SELECTED, this.onNewSectionSelected);
 	}
 
 	componentWillUnmount() {
-		eventsManager.off(constants.events.NEW_PREMIERS_AVAILABLE, this.onNewPremiersAvailable);
+		eventsManager.off(constants.events.NEW_MOVIES_AVAILABLE, this.onNewMoviesAvailable);
 		eventsManager.off(constants.events.SECTION_SELECTED, this.onNewSectionSelected);
 	}
 
 	render() {
-		let movies, newPremiersAvailableMessage;
+		let movies, newMoviesAvailableMessage;
 
-		if (this.state.premierMovies.length) {
-			movies = this.state.premierMovies.map((movie, index) => {
-				return (<div className="item" key={index}>{movie.title}</div>);
+		if (this.state.movies.length) {
+			movies = this.state.movies.map((movie, index) => {
+				return (<MovieSummary key={index} movie={movie} />);
 			});
 		} else {
-			movies = (<div>Loading movies...</div>);
+			movies = (
+				<div className="ui icon message loading-message">
+					<i className="notched circle loading icon"></i>
+					<div className="content">
+						<div className="header">
+							{getText('home-page.loading-message.1')}
+						</div>
+						<p>{getText('home-page.loading-message.2')}</p>
+					</div>
+				</div>
+			);
 		}
 
-		if (this.state.newPremierMovies.length) {
-			newPremiersAvailableMessage = (
-				<div className="ui info message new-movies-available-msg">
-					<p>
-						<span>{getText('home-page.new-premiers-message.1')}</span>
-						<br/>
-						<span>
-							<a href="#" onClick={this.onLoadNewPremiersClick.bind(this)}>{getText('home-page.new-premiers-message.2')}</a>
-							{getText('home-page.new-premiers-message.3')}</span>
-					</p>
+		if (this.state.newMovies.length) {
+			newMoviesAvailableMessage = (
+				<div className="ui icon message new-movies-available-msg">
+					<i className="refresh icon"></i>
+					<div className="content">
+						<div className="header">
+							{getText('home-page.new-premiers-message.1')}
+						</div>
+						<p>
+							<a href="#" onClick={this.onLoadNewMoviesClick.bind(this)}>{getText('home-page.new-premiers-message.2')}</a>
+							{getText('home-page.new-premiers-message.3')}
+						</p>
+					</div>
 				</div>
 			);
 		}
@@ -84,8 +99,8 @@ class HomePage extends React.Component {
 		return (
 			<div className="home-page">
 				<h1 className="ui header">{getText(`header.category-${this.state.selectedSection}`)}</h1>
-				{newPremiersAvailableMessage}
-				<div className="ui list">
+				{newMoviesAvailableMessage}
+				<div className="ui link cards movies-grid">
 					{movies}
 				</div>
 			</div>
