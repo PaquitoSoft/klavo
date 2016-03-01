@@ -1,6 +1,7 @@
 import React from 'react';
+import lscache from 'lscache';
 import eventsManager from '../plugins/events-manager';
-import constants from '../plugins/constants';
+import constants from '../config/constants';
 import { getText } from '../plugins/i18n';
 import * as moviesCatalogApi from '../api/movies-catalog';
 import MovieSummary from './movie-summary';
@@ -63,15 +64,10 @@ class HomePage extends React.Component {
 	}
 
 	componentDidMount() {
-		this.loadMovies(constants.sections.premiers);
-
-		// TODO We could check if this is the first visit. If so, we can start
-		// requesting all sections summaries so, when the user gets to them
-		// we already have the summaries in the cache
-		// We must do this after the first section had been loaded
+		this.loadMovies(constants.sections.premiers);		
 		
 		eventsManager.on(constants.events.NEW_MOVIES_AVAILABLE, this.onNewMoviesAvailable);
-		eventsManager.on(constants.events.SECTION_SELECTED, this.onNewSectionSelected);
+		eventsManager.on(constants.events.SECTION_SELECTED, this.onNewSectionSelected);	
 	}
 
 	componentWillUnmount() {

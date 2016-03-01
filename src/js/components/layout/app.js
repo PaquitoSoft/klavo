@@ -1,7 +1,7 @@
 import React from 'react';
 import * as moviesCatalogApi from '../../api/movies-catalog';
 import eventsManager from '../../plugins/events-manager';
-import constants from '../../plugins/constants';
+import constants from '../../config/constants';
 import Header from './header';
 import Footer from './footer';
 import HomePage from '../home-page';

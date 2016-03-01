@@ -1,7 +1,7 @@
 import lscache from 'lscache';
 import { getHtml } from '../plugins/ajax';
 import eventsManager from '../plugins/events-manager';
-import constants from '../plugins/constants';
+import constants from '../config/constants';
 import MovieModel from '../models/movie';
 
 const CORS_SERVICE_BASE_URL = 'https://crossorigin.me/';
@@ -10,13 +10,9 @@ const PREMIERS_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}g
 const MOST_VIEWED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`;
 const BEST_RATED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=2490`;
 const RECENTLY_ADDED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`;
-const MOVIE_DETAILS_BAE_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=`;
+const MOVIE_DETAILS_BASE_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=`;
 
 const CACHE_LASTUPDATES = 'movies-lastupdates';
-const CACHE_PREMIERS_KEY = 'movies-premiers';
-const CACHE_RECENTLY_ADDED_KEY = 'movies-recently-added';
-const CACHE_MOST_VIEWED_KEY = 'movies-most-viewed';
-const CACHE_BEST_RATED_KEY = 'movies-best-rated';
 const CACHE_MOVIE_DETAIL_KEY = 'movie-detail-';
 const CACHE_MOVIES_TTL = 60 /* minutes */ * 24 /* hours */ * 30 /* days */; // One month (minutes)
 // const CACHE_MOVIES_TTL = 10;
@@ -81,7 +77,7 @@ function getMovieDetails(movieCpId) {
 	} else {
 		return new Promise((resolve, reject) => {
 			console.time('Load movie detail');
-			getHtml(`${MOVIE_DETAILS_BAE_URL}${movieCpId}`)
+			getHtml(`${MOVIE_DETAILS_BASE_URL}${movieCpId}`)
 				.then(movieDocument => {
 					console.timeEnd('Load movie detail');
 
@@ -199,41 +195,41 @@ function getSectionMovies(section, moviesLoader, url, elementsSelector, cacheKey
 
 export function getPremiers() {
 	return getSectionMovies(
-		'premiers',
+		constants.sections.premiers,
 		getMoviesSummary,
 		PREMIERS_MOVIES_URL,
 		'.showpeliculas .postsh',
-		CACHE_PREMIERS_KEY
+		constants.cache.CACHE_PREMIERS_KEY
 	);	
 }
 
 
 export function getRecentlyAdded() {
 	return getSectionMovies(
-		'recentlyAdded',
+		constants.sections['recently-added'],
 		getMoviesSummary,
 		RECENTLY_ADDED_MOVIES_URL,
 		'.showpeliculas .posthome .postsh',
-		CACHE_RECENTLY_ADDED_KEY		
+		constants.cache.CACHE_RECENTLY_ADDED_KEY		
 	);
 }
 
 export function getMostViewed() {
 	return getSectionMovies(
-		'mostViewed',
+		constants.sections['most-viewed'],
 		getMoviesDetails,
 		MOST_VIEWED_MOVIES_URL,
 		'.showpeliculas > .loph3 a',
-		CACHE_MOST_VIEWED_KEY		
+		constants.cache.CACHE_MOST_VIEWED_KEY		
 	);
 }
 
 export function getBestRated() {
 	return getSectionMovies(
-		'bestRated',
+		constants.sections['best-rated'],
 		getMoviesDetails,
 		BEST_RATED_MOVIES_URL,
 		'#rating10 .topli10 a',
-		CACHE_BEST_RATED_KEY
+		constants.cache.CACHE_BEST_RATED_KEY
 	);
 }

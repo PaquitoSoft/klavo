@@ -1,7 +1,7 @@
 import React from 'react';
 import eventsManager from '../../plugins/events-manager';
 import { getText } from '../../plugins/i18n';
-import constants from '../../plugins/constants';
+import constants from '../../config/constants';
 
 class Header extends React.Component {
 
