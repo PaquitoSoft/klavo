@@ -27,10 +27,10 @@ const UPDATE_CACHED_MOVIES_INTERVAL = 10 * 1000;
 
 function getMoviesSummary(url, moviesSelector, cacheKey) {
 	return new Promise((resolve, reject) => {
-		console.time('Load movies');
+		console.time('Load movies summaries');
 		getHtml(url)
 			.then(moviesDocument => {
-				console.timeEnd('Load movies');
+				console.timeEnd('Load movies summaries');
 
 				/* START Debug 
 				let movies;
@@ -100,6 +100,7 @@ function getMoviesByIds(identifiers) {
 function getMoviesDetails(url, moviesLinksSelector) {
 	// TODO An error getting one movie must not discard the rest
 	return new Promise((resolve, reject) => {
+		console.time('Load movies details');
 		getHtml(url)
 			.then(moviesDocument => {
 				let moviesIdentifiers = [...moviesDocument.querySelectorAll(moviesLinksSelector)].map(movieLink => {
@@ -109,6 +110,7 @@ function getMoviesDetails(url, moviesLinksSelector) {
 			})
 			.then(getMoviesByIds)
 			.then(movies => {
+				console.timeEnd('Load movies details');
 				// Filter errored movies requests
 				return movies.filter(movie => { return movie !== null });
 			})
@@ -117,9 +119,9 @@ function getMoviesDetails(url, moviesLinksSelector) {
 	});
 }
 
-function updateMoviesDetails(url, moviesLinksSelector, cacheKey) {
+function updateMovies(moviesLoader, url, elementsSelector, cacheKey) {
 	/*
-		1. Get current most viewed
+		1. Get current movies
 		2. Filter out the ones which we already have
 		3. Update cached movies with the new ones (if there are any)
 		4. Notify new movies (if there are any)
@@ -127,7 +129,7 @@ function updateMoviesDetails(url, moviesLinksSelector, cacheKey) {
 	return new Promise(resolve => {
 		let cachedMovies = lscache.get(cacheKey) || [];
 
-		getMoviesDetails(url, moviesLinksSelector)
+		moviesLoader(url, elementsSelector, cacheKey)
 			.then(movies => {
 				return filterNewMovies(cachedMovies, movies);
 			})
@@ -136,49 +138,13 @@ function updateMoviesDetails(url, moviesLinksSelector, cacheKey) {
 					lscache.set(cacheKey, newMovies.concat(cachedMovies), CACHE_MOVIES_TTL); // Last parameter is TTL in minutes
 					eventsManager.trigger(constants.events.NEW_MOVIES_AVAILABLE, newMovies);
 				} else {
-					console.debug('MoviesCatalogApi::updateMoviesDetails# There are no new movies.');
+					console.debug('MoviesCatalogApi::updateMovies# There are no new movies.');
 				}
 				resolve(newMovies);
 			})
 			.catch(err => {
-				console.error('MoviesCatalogApi::updateMoviesDetails# Error updating movies:', err);
+				console.error('MoviesCatalogApi::updateMovies# Error updating movies:', err);
 				console.error(err.stack);
-			});
-	});
-}
-
-function getNewSectionMovies(moviesUrl, moviesSelector, cacheKey) {
-	return new Promise((resolve, reject) => {
-		let cachedMovies = lscache.get(cacheKey) || [];
-		
-		getMoviesSummary(moviesUrl, moviesSelector, cacheKey)
-			.then(movies => {
-				resolve(movies.filter((movie) => {
-					return cachedMovies.findIndex(listItem => { return listItem.cpId === movie.cpId; }) === -1;
-				}));
-			})
-			.catch(reject);
-	});
-}
-
-function updateSectionMovies(moviesUrl, moviesSelector, cacheKey) {
-	console.debug('MoviesCatalogApi::updateSectionMovies# Updating movies...');
-	return new Promise((resolve) => {
-		getNewSectionMovies(moviesUrl, moviesSelector, cacheKey)
-			.then(newMovies => {
-				if (newMovies.length) {
-					let cachedMovies = lscache.get(cacheKey) || [];
-					console.debug('MoviesCatalogApi::updateSectionMovies# Updating movies with...', newMovies.length, cachedMovies.length);
-					lscache.set(cacheKey, newMovies.concat(cachedMovies), CACHE_MOVIES_TTL); // Last parameter is TTL in minutes
-					eventsManager.trigger(constants.events.NEW_MOVIES_AVAILABLE, newMovies);
-				} else {
-					console.debug('MoviesCatalogApi::updateSectionMovies# There are no new movies.');
-				}
-				resolve(newMovies);
-			})
-			.catch(error => {
-				console.error('MoviesCatalogApi::updateSectionMovies# Error updating movies:', error);
-				console.error(error.stack);
 			});
 	});
 }
@@ -210,7 +176,7 @@ export function getPremiers() {
 			// Only update movies after one day has passed since the last time we did it
 			if (!lastUpdates.premiers || (Date.now() - lastUpdates.premiers) > UPDATE_CACHED_MOVIES_INTERVAL) {
 				console.debug('Let\'s update premiers...');
-				updateSectionMovies(PREMIERS_MOVIES_URL, moviesSelector, CACHE_PREMIERS_KEY)
+				updateMovies(getMoviesSummary, PREMIERS_MOVIES_URL, moviesSelector, CACHE_PREMIERS_KEY)
 					.then(() => {
 						lastUpdates.premiers = Date.now();
 						lscache.set(CACHE_LASTUPDATES, lastUpdates);
@@ -242,7 +208,7 @@ export function getRecentlyAdded() {
 		setTimeout(function() {
 			// Only update movies after one day has passed since the last time we did it
 			if (!lastUpdates.recentlyAdded || (Date.now() - lastUpdates.recentlyAdded) > UPDATE_CACHED_MOVIES_INTERVAL) {
-				updateSectionMovies(RECENTLY_ADDED_MOVIES_URL, moviesSelector, CACHE_RECENTLY_ADDED_KEY)
+				updateMovies(getMoviesSummary, RECENTLY_ADDED_MOVIES_URL, moviesSelector, CACHE_RECENTLY_ADDED_KEY)
 					.then(() => {
 						lastUpdates.recentlyAdded = Date.now();
 						lscache.set(CACHE_LASTUPDATES, lastUpdates);
@@ -274,7 +240,7 @@ export function getMostViewed() {
 			// Only update movies after one day has passed since the last time we did it
 			if (!lastUpdates.mostViewed || (Date.now() - lastUpdates.mostViewed) > UPDATE_CACHED_MOVIES_INTERVAL) {
 				console.debug('MoviesCatalogApi::getMostViewed# Updating movies...');
-				updateMoviesDetails(MOST_VIEWED_MOVIES_URL, moviesLinksSelector, CACHE_MOST_VIEWED_KEY)
+				updateMovies(getMoviesDetails, MOST_VIEWED_MOVIES_URL, moviesLinksSelector, CACHE_MOST_VIEWED_KEY)
 					.then(() => {
 						lastUpdates.mostViewed = Date.now();
 						lscache.set(CACHE_LASTUPDATES, lastUpdates);
@@ -299,7 +265,7 @@ export function getBestRated() {
 			// Only update movies after one day has passed since the last time we did it
 			if (!lastUpdates.bestRated || (Date.now() - lastUpdates.bestRated) > UPDATE_CACHED_MOVIES_INTERVAL) {
 				console.debug('MoviesCatalogApi::getBestRated# Updating movies...');
-				updateMoviesDetails(BEST_RATED_MOVIES_URL, moviesLinksSelector, CACHE_BEST_RATED_KEY)
+				updateMovies(getMoviesDetails, BEST_RATED_MOVIES_URL, moviesLinksSelector, CACHE_BEST_RATED_KEY)
 					.then(() => {
 						lastUpdates.bestRated = Date.now();
 						lscache.set(CACHE_LASTUPDATES, lastUpdates);
