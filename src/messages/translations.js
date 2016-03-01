@@ -23,8 +23,8 @@ export default {
 		'en': 'Recently added'
 	},
 	'home-page.loading-message.1': {
-		'es': 'Danos un momentito',
-		'en': 'Gives a little moment'
+		'es': 'Danos un momento, por favor.',
+		'en': 'Give us a little moment, please.'
 	},
 	'home-page.loading-message.2': {
 		'es': 'Estamos buscando la información de las pelis...',
