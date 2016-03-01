@@ -16,8 +16,25 @@ class HomePage extends React.Component {
 			selectedSection: constants.sections.premiers
 		};
 
+		this.sectionsMovieLoadersMap = {
+			[constants.sections.premiers]: moviesCatalogApi.getPremiers,
+			[constants.sections['recently-added']]: moviesCatalogApi.getRecentlyAdded,
+			[constants.sections['most-viewed']]: moviesCatalogApi.getMostViewed
+		}
+
 		this.onNewMoviesAvailable = this.receiveNewMovies.bind(this);
 		this.onNewSectionSelected = this.updateVisibleSection.bind(this);
+	}
+
+	loadMovies(section) {
+		this.sectionsMovieLoadersMap[section].call()
+			.then(movies => {
+				this.setState({movies});
+			})
+			.catch(err => {
+				console.error(err);
+				console.error(err.stack);
+			});
 	}
 
 	receiveNewMovies(newMovies) {
@@ -28,6 +45,11 @@ class HomePage extends React.Component {
 
 	updateVisibleSection(newSection) {
 		console.debug('HomePage::updateVisibleSection# TODO');
+		this.setState({
+			selectedSection: newSection,
+			movies: []
+		});
+		this.loadMovies(newSection);
 	}
 
 	onLoadNewMoviesClick(event) {
@@ -39,16 +61,8 @@ class HomePage extends React.Component {
 	}
 
 	componentDidMount() {
-		moviesCatalogApi.getPremiers()
-		// moviesCatalogApi.getRecentlyAdded()
-			.then(movies => {
-				this.setState({movies});
-			})
-			.catch(err => {
-				console.error(err);
-				console.error(err.stack);
-			});
-
+		this.loadMovies(constants.sections.premiers);
+		
 		eventsManager.on(constants.events.NEW_MOVIES_AVAILABLE, this.onNewMoviesAvailable);
 		eventsManager.on(constants.events.SECTION_SELECTED, this.onNewSectionSelected);
 	}

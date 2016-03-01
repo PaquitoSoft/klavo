@@ -6,7 +6,7 @@ let constants = Object.freeze({
 	},
 	sections: {
 		'premiers': 'premiers',
-		'most-viwed': 'most-viwed',
+		'most-viewed': 'most-viewed',
 		'best-rated': 'best-rated',
 		'recently-added': 'recently-added'
 	}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { trigger } from '../../plugins/events-manager';
+import eventsManager from '../../plugins/events-manager';
 import { getText } from '../../plugins/i18n';
 import constants from '../../plugins/constants';
 
@@ -11,7 +11,7 @@ class Header extends React.Component {
 
 	onSectionSelected(selectedSection, event) {
 		event.preventDefault();
-		trigger(constants.events.SECTION_SELECTED, {selectedSection});
+		eventsManager.trigger(constants.events.SECTION_SELECTED, selectedSection);
 	}
 
 	render() {
@@ -28,7 +28,7 @@ class Header extends React.Component {
 							<a className="item" href="#" onClick={this.onSectionSelected.bind(this, constants.sections.premiers)}>
 								{getText('header.category-premiers')}
 							</a>
-							<a className="item" href="#" onClick={this.onSectionSelected.bind(this, constants.sections['most-viwed'])}>
+							<a className="item" href="#" onClick={this.onSectionSelected.bind(this, constants.sections['most-viewed'])}>
 								{getText('header.category-most-viewed')}
 							</a>
 							<a className="item" href="#" onClick={this.onSectionSelected.bind(this, constants.sections['best-rated'])}>

@@ -33,4 +33,8 @@ body {
 .ui.movies-grid > .movie-summary {
 	width: 185px;
 	min-height: 400px;
+
+	& > .movie-info {
+		padding-bottom: 0;
+	}
 }

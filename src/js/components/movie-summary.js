@@ -5,9 +5,9 @@ export default function MovieSummary(props) {
 	return (
 		<div className="card movie-summary">
 			<div className="image">
-				<img src={movie.posterUrl} alt={movie.title} />
+				<img src={movie.coverUrl} alt={movie.title} />
 			</div>
-			<div className="content">
+			<div className="content movie-info">
 				<div className="header">{movie.title}</div>
 				<div className="meta">
 					<a href="#">{movie.genre}</a>
