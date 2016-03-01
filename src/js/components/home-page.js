@@ -45,12 +45,13 @@ class HomePage extends React.Component {
 	}
 
 	updateVisibleSection(newSection) {
-		console.debug('HomePage::updateVisibleSection# TODO');
-		this.setState({
-			selectedSection: newSection,
-			movies: []
-		});
-		this.loadMovies(newSection);
+		if (this.state.selectedSection !== newSection) {
+			this.setState({
+				selectedSection: newSection,
+				movies: []
+			});
+			this.loadMovies(newSection);
+		}
 	}
 
 	onLoadNewMoviesClick(event) {
