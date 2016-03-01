@@ -22,8 +22,20 @@ const CACHE_MOVIES_TTL = 60 /* minutes */ * 24 /* hours */ * 30 /* days */; // O
 // const CACHE_MOVIES_TTL = 10;
 const CACHE_MOVIE_DETAIL_TTL = 60 * 24 * 1; // One day (minutes)
 
-// const UPDATE_CACHED_MOVIES_INTERVAL = 1 * 24 * 60 * 60 * 1000; // One day (milliseconds)
-const UPDATE_CACHED_MOVIES_INTERVAL = 10 * 1000;
+const UPDATE_CACHED_MOVIES_INTERVAL = 1 * 24 * 60 * 60 * 1000; // One day (milliseconds)
+// const UPDATE_CACHED_MOVIES_INTERVAL = 10 * 1000;
+
+
+function cacheMovies(cacheKey, movies) {
+	lscache.set(cacheKey, movies, CACHE_MOVIES_TTL); // Last parameter is TTL in minutes
+	return movies;
+}
+
+function filterNewMovies(cachedMovies, newMovies) {
+	return newMovies.filter((movie) => {
+		return cachedMovies.findIndex(listItem => { return listItem.cpId === movie.cpId; }) === -1;
+	});
+}
 
 function getMoviesSummary(url, moviesSelector, cacheKey) {
 	return new Promise((resolve, reject) => {
@@ -32,7 +44,7 @@ function getMoviesSummary(url, moviesSelector, cacheKey) {
 			.then(moviesDocument => {
 				console.timeEnd('Load movies summaries');
 
-				/* START Debug 
+				/* START Debug
 				let movies;
 				let cachedPremiers = lscache.get(cacheKey) || [];
 
@@ -149,36 +161,20 @@ function updateMovies(moviesLoader, url, elementsSelector, cacheKey) {
 	});
 }
 
-function cacheMovies(cacheKey, movies) {
-	lscache.set(cacheKey, movies, CACHE_MOVIES_TTL); // Last parameter is TTL in minutes
-	return movies;
-}
-
-function filterNewMovies(cachedMovies, newMovies) {
-	return newMovies.filter((movie) => {
-		return cachedMovies.findIndex(listItem => { return listItem.cpId === movie.cpId; }) === -1;
-	});
-}
-
-/* ----------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------------- */
-
-export function getPremiers() {
-	const moviesSelector = '.showpeliculas .postsh',
-		cachedPremiers = lscache.get(CACHE_PREMIERS_KEY),
+function getSectionMovies(section, moviesLoader, url, elementsSelector, cacheKey) {
+	const cachedPremiers = lscache.get(cacheKey),
 		lastUpdates = lscache.get(CACHE_LASTUPDATES) || {};
 
 	if (cachedPremiers) {
-		console.debug('MoviesCatalogApi::getPremiers# Returning cached premiers...');
+		console.debug('MoviesCatalogApi::getSectionMovies# Returning cached movies...');
 	
 		setTimeout(function() {
 			// Only update movies after one day has passed since the last time we did it
-			if (!lastUpdates.premiers || (Date.now() - lastUpdates.premiers) > UPDATE_CACHED_MOVIES_INTERVAL) {
-				console.debug('Let\'s update premiers...');
-				updateMovies(getMoviesSummary, PREMIERS_MOVIES_URL, moviesSelector, CACHE_PREMIERS_KEY)
+			if (!lastUpdates[section] || (Date.now() - lastUpdates[section]) > UPDATE_CACHED_MOVIES_INTERVAL) {
+				console.debug(`Let\'s update ${section}...`);
+				updateMovies(moviesLoader, url, elementsSelector, cacheKey)
 					.then(() => {
-						lastUpdates.premiers = Date.now();
+						lastUpdates[section] = Date.now();
 						lscache.set(CACHE_LASTUPDATES, lastUpdates);
 					});
 			}
@@ -187,95 +183,57 @@ export function getPremiers() {
 		return Promise.resolve(cachedPremiers);
 
 	} else {
-		return new Promise((resolve, reject) => {
-			getMoviesSummary(PREMIERS_MOVIES_URL, moviesSelector, CACHE_PREMIERS_KEY)
-				.then(cacheMovies.bind(null, CACHE_PREMIERS_KEY))
-				.then(resolve)
-				.catch(reject);
-		});
+		return moviesLoader(url, elementsSelector, cacheKey)
+			.then(movies => {
+				lastUpdates[section] = Date.now();
+				lscache.set(CACHE_LASTUPDATES, lastUpdates);
+				return movies;
+			})
+			.then(cacheMovies.bind(null, cacheKey));
 	}
+}
+
+/* ----------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------- */
+
+export function getPremiers() {
+	return getSectionMovies(
+		'premiers',
+		getMoviesSummary,
+		PREMIERS_MOVIES_URL,
+		'.showpeliculas .postsh',
+		CACHE_PREMIERS_KEY
+	);	
 }
 
 
 export function getRecentlyAdded() {
-	const moviesSelector = '.showpeliculas .posthome .postsh',
-		cachedMovies = lscache.get(CACHE_RECENTLY_ADDED_KEY),
-		lastUpdates = lscache.get(CACHE_LASTUPDATES) || {};
-
-	if (cachedMovies) {
-		console.debug('MoviesCatalogApi::getRecentlyAdded# Returning cached movies...');
-
-		setTimeout(function() {
-			// Only update movies after one day has passed since the last time we did it
-			if (!lastUpdates.recentlyAdded || (Date.now() - lastUpdates.recentlyAdded) > UPDATE_CACHED_MOVIES_INTERVAL) {
-				updateMovies(getMoviesSummary, RECENTLY_ADDED_MOVIES_URL, moviesSelector, CACHE_RECENTLY_ADDED_KEY)
-					.then(() => {
-						lastUpdates.recentlyAdded = Date.now();
-						lscache.set(CACHE_LASTUPDATES, lastUpdates);
-					});
-			}			
-		}, 200);
-		
-		return Promise.resolve(cachedMovies);
-
-	} else {
-		return new Promise((resolve, reject) => {
-			getMoviesSummary(RECENTLY_ADDED_MOVIES_URL, moviesSelector, CACHE_RECENTLY_ADDED_KEY)
-				.then(cacheMovies.bind(null, CACHE_RECENTLY_ADDED_KEY))
-				.then(resolve)
-				.catch(reject);
-		});
-	}
+	return getSectionMovies(
+		'recentlyAdded',
+		getMoviesSummary,
+		RECENTLY_ADDED_MOVIES_URL,
+		'.showpeliculas .posthome .postsh',
+		CACHE_RECENTLY_ADDED_KEY		
+	);
 }
 
-/* ........................................................................................... */
-
 export function getMostViewed() {
-	let moviesLinksSelector = '.showpeliculas > .loph3 a',
-		cachedMovies = lscache.get(CACHE_MOST_VIEWED_KEY),
-		lastUpdates = lscache.get(CACHE_LASTUPDATES) || {};
-
-	if (cachedMovies) {
-		setTimeout(function() {
-			// Only update movies after one day has passed since the last time we did it
-			if (!lastUpdates.mostViewed || (Date.now() - lastUpdates.mostViewed) > UPDATE_CACHED_MOVIES_INTERVAL) {
-				console.debug('MoviesCatalogApi::getMostViewed# Updating movies...');
-				updateMovies(getMoviesDetails, MOST_VIEWED_MOVIES_URL, moviesLinksSelector, CACHE_MOST_VIEWED_KEY)
-					.then(() => {
-						lastUpdates.mostViewed = Date.now();
-						lscache.set(CACHE_LASTUPDATES, lastUpdates);
-					});
-			}
-		}, 200);
-
-		return Promise.resolve(cachedMovies);
-	} else {
-		return getMoviesDetails(MOST_VIEWED_MOVIES_URL, moviesLinksSelector)
-			.then(cacheMovies.bind(null, CACHE_MOST_VIEWED_KEY));
-	}
+	return getSectionMovies(
+		'mostViewed',
+		getMoviesDetails,
+		MOST_VIEWED_MOVIES_URL,
+		'.showpeliculas > .loph3 a',
+		CACHE_MOST_VIEWED_KEY		
+	);
 }
 
 export function getBestRated() {
-	let moviesLinksSelector = '#rating10 .topli10 a',
-		cachedMovies = lscache.get(CACHE_BEST_RATED_KEY),
-		lastUpdates = lscache.get(CACHE_LASTUPDATES) || {};
-
-	if (cachedMovies) {
-		setTimeout(function() {
-			// Only update movies after one day has passed since the last time we did it
-			if (!lastUpdates.bestRated || (Date.now() - lastUpdates.bestRated) > UPDATE_CACHED_MOVIES_INTERVAL) {
-				console.debug('MoviesCatalogApi::getBestRated# Updating movies...');
-				updateMovies(getMoviesDetails, BEST_RATED_MOVIES_URL, moviesLinksSelector, CACHE_BEST_RATED_KEY)
-					.then(() => {
-						lastUpdates.bestRated = Date.now();
-						lscache.set(CACHE_LASTUPDATES, lastUpdates);
-					});
-			}
-		}, 200);
-
-		return Promise.resolve(cachedMovies);
-	} else {
-		return getMoviesDetails(BEST_RATED_MOVIES_URL, '#rating10 .topli10 a')
-			.then(cacheMovies.bind(null, CACHE_BEST_RATED_KEY));
-	}
+	return getSectionMovies(
+		'bestRated',
+		getMoviesDetails,
+		BEST_RATED_MOVIES_URL,
+		'#rating10 .topli10 a',
+		CACHE_BEST_RATED_KEY
+	);
 }
