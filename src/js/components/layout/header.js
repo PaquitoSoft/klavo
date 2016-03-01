@@ -19,7 +19,7 @@ class Header extends React.Component {
 			<div className="ui fixed inverted menu">
 				<div className="ui container">
 					<a href="/" className="header item">
-						<img className="logo" src="/images/logo.png" />
+						<img className="logo" src="/images/logo.png" width="35" height="35" />
 						{getText('header.app-title')}
 					</a>
 					<div className="ui simple dropdown item">
