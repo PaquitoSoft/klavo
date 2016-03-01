@@ -19,7 +19,8 @@ class HomePage extends React.Component {
 		this.sectionsMovieLoadersMap = {
 			[constants.sections.premiers]: moviesCatalogApi.getPremiers,
 			[constants.sections['recently-added']]: moviesCatalogApi.getRecentlyAdded,
-			[constants.sections['most-viewed']]: moviesCatalogApi.getMostViewed
+			[constants.sections['most-viewed']]: moviesCatalogApi.getMostViewed,
+			[constants.sections['best-rated']]: moviesCatalogApi.getBestRated
 		}
 
 		this.onNewMoviesAvailable = this.receiveNewMovies.bind(this);
@@ -62,6 +63,11 @@ class HomePage extends React.Component {
 
 	componentDidMount() {
 		this.loadMovies(constants.sections.premiers);
+
+		// TODO We could check if this is the first visit. If so, we can start
+		// requesting all sections summaries so, when the user gets to them
+		// we already have the summaries in the cache
+		// We must do this after the first section had been loaded
 		
 		eventsManager.on(constants.events.NEW_MOVIES_AVAILABLE, this.onNewMoviesAvailable);
 		eventsManager.on(constants.events.SECTION_SELECTED, this.onNewSectionSelected);

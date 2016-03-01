@@ -27,8 +27,8 @@ export default {
 		'en': 'Gives a little moment'
 	},
 	'home-page.loading-message.2': {
-		'es': 'Estamos buscando las últimas pelis...',
-		'en': 'We\'re looking for the latest movies...'
+		'es': 'Estamos buscando la información de las pelis...',
+		'en': 'We\'re looking for the movies info...'
 	},
 	'home-page.new-premiers-message.1': {
 		'es': 'Hay nuevos estrenos disponibles.',

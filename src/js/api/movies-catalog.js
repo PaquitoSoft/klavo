@@ -8,16 +8,17 @@ const CORS_SERVICE_BASE_URL = 'https://crossorigin.me/';
 const MOVIES_SERVICE_BASE_URL = 'http://www.clubpelis.com/';
 const PREMIERS_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}genero/estrenos`;
 const MOST_VIEWED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`;
-const BEST_RATED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}genero/estrenos`;
+const BEST_RATED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=2490`;
 const RECENTLY_ADDED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`;
-const MOVIE_DETAILS_BAE_URL = 'http://www.clubpelis.com/?p=';
+const MOVIE_DETAILS_BAE_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=`;
 
 const CACHE_LASTUPDATES = 'movies-lastupdates';
 const CACHE_PREMIERS_KEY = 'movies-premiers';
 const CACHE_RECENTLY_ADDED_KEY = 'movies-recently-added';
 const CACHE_MOST_VIEWED_KEY = 'movies-most-viewed';
+const CACHE_BEST_RATED_KEY = 'movies-best-rated';
 const CACHE_MOVIE_DETAIL_KEY = 'movie-detail-';
-// const CACHE_MOVIES_TTL = 60 /* minutes */ * 24 /* hours */ * 7 /* days */; // One week (in minutes)
+// const CACHE_MOVIES_TTL = 60 /* minutes */ * 24 /* hours */ * 30 /* days */; // One month (in minutes)
 const CACHE_MOVIES_TTL = 10;
 const CACHE_MOVIE_DETAIL_TTL = 60 * 24 * 1;
 
@@ -57,8 +58,8 @@ function getMoviesSummary(url, moviesSelector, cacheKey) {
 	});
 }
 
-function getMovieDetails(movieCbId) {
-	let movieCacheKey = `${CACHE_MOVIE_DETAIL_KEY}${movieCbId}`,
+function getMovieDetails(movieCpId) {
+	let movieCacheKey = `${CACHE_MOVIE_DETAIL_KEY}${movieCpId}`,
 		cachedMovie = lscache.get(movieCacheKey);
 
 	if (cachedMovie) {
@@ -66,14 +67,22 @@ function getMovieDetails(movieCbId) {
 	} else {
 		return new Promise((resolve, reject) => {
 			console.time('Load movie detail');
-			getHtml(`${MOVIE_DETAILS_BAE_URL}${movieCbId}`)
+			getHtml(`${MOVIE_DETAILS_BAE_URL}${movieCpId}`)
 				.then(movieDocument => {
 					console.timeEnd('Load movie detail');
-					console.time('Parse movie detail');
-					let movie = new MovieModel(movieDocument.querySelector('body'), 'htmlDetailElement', movieCpId);
-					console.timeEnd('Parse movie detail');
-					lscache.set(movieCacheKey, movie, CACHE_MOVIE_DETAIL_TTL);
-					resolve(movie);
+
+					// Sometime I get an empty body response
+					let documentBody = movieDocument.querySelector('body');
+					if (!documentBody.querySelector('#informacion')) {
+						console.warn('There was a problem requeting movie', movieCpId);
+						resolve(null);
+					} else {
+						console.time('Parse movie detail');
+						let movie = new MovieModel(documentBody, 'htmlDetailElement', movieCpId);
+						console.timeEnd('Parse movie detail');
+						lscache.set(movieCacheKey, movie, CACHE_MOVIE_DETAIL_TTL);
+						resolve(movie);
+					}
 				})
 				.catch(reject);
 		});
@@ -82,8 +91,32 @@ function getMovieDetails(movieCbId) {
 
 function getMoviesByIds(identifiers) {
 	return Promise.all(identifiers.map(cpId => {
-		return getMovieDetails.bind(null, cpId);
+		return getMovieDetails(cpId);
 	}));
+}
+
+function getMoviesDetails(url, moviesLinksSelector, cacheKey) {
+	// TODO An error getting one movie must not discard the rest
+	return new Promise((resolve, reject) => {
+		getHtml(url)
+			.then(moviesDocument => {
+				let moviesIdentifiers = [...moviesDocument.querySelectorAll(moviesLinksSelector)].map(movieLink => {
+					return movieLink.getAttribute('href').match(/pelicula\/(\d*)\//)[1];
+				});
+				return moviesIdentifiers;
+			})
+			.then(getMoviesByIds)
+			.then(movies => {
+				// Filter errored movies requests
+				return movies.filter(movie => { return movie !== null });
+			})
+			.then(movies => {
+				lscache.set(cacheKey, movies, CACHE_MOVIES_TTL); // Last parameter is TTL in minutes
+				return movies;
+			})
+			.then(resolve)
+			.catch(reject);
+	});
 }
 
 function getNewSectionMovies(moviesSectionLoader, cacheKey) {
@@ -179,19 +212,17 @@ export function getMostViewed() {
 		// TODO Update in the background
 		return Promise.resolve(cachedMovies);
 	} else {
-		return new Promise((resolve, reject) => {
-			getHtml(MOST_VIEWED_MOVIES_URL)
-				.then(moviesDocument => {
-					let moviesIdentifiers = [...moviesDocument.querySelectorAll('.showpeliculas > .loph3 a')].map(movieLink => {
-						return movieLink.getAttribute('href').match(/pelicula\/(\d*)\//)[1];
-					});
-					return moviesIdentifiers;
-				})
-				.then(getMoviesByIds)
-				.then(resolve)
-				.catch(reject)
-		});
+		return getMoviesDetails(MOST_VIEWED_MOVIES_URL, '.showpeliculas > .loph3 a', CACHE_MOST_VIEWED_KEY);
 	}
 }
 
-export function getBestRated() {}
+export function getBestRated() {
+	let cachedMovies = lscache.get(CACHE_BEST_RATED_KEY);
+
+	if (cachedMovies) {
+		// TODO Update in the background
+		return Promise.resolve(cachedMovies);
+	} else {
+		return getMoviesDetails(BEST_RATED_MOVIES_URL, '#rating10 .topli10 a', CACHE_BEST_RATED_KEY);
+	}
+}

@@ -2,8 +2,10 @@ var gulp = require('gulp'),
 	gutil = require('gulp-util'),
 	gcopy = require('gulp-copy'),
 	postcss = require('gulp-postcss'),
+	nano = require('gulp-cssnano'),
 	del = require('del'),
 	runSequence = require('run-sequence'),
+	surge = require('gulp-surge'),
 	webpack = require('webpack'),
 	WebpackDevServer = require('webpack-dev-server'),
 	webpackConfig = require('./webpack.config.js');
@@ -38,6 +40,11 @@ gulp.task('styles', function() {
 		.pipe(postcss(postcssProcessors))
 		.pipe(gulp.dest('./dist/styles'));
 });
+gulp.task('build:styles', function() {
+	return gulp.src('./dist/styles/app.css')
+		.pipe(nano())
+		.pipe(gulp.dest('./dist/styles'));
+});
 
 // Copy assets
 gulp.task('copy:html', function() {
@@ -46,15 +53,9 @@ gulp.task('copy:html', function() {
 			prefix: 1
 		}));
 });
-gulp.task('copy:vendorStyles', function() {
-	return gulp.src('./src/vendor/semantic/dist/components/**/*min.css')
-		.pipe(gcopy('./dist/vendor/semantic/components', {
-			prefix: 5
-		}));
-});
 gulp.task('copy:vendorIcons', function() {
 	return gulp.src('./src/vendor/semantic/src/themes/default/assets/**/*')
-		.pipe(gcopy('./dist/vendor/semantic/themes', {
+		.pipe(gcopy('./dist/themes', {
 			prefix: 5
 		}));
 });
@@ -133,14 +134,23 @@ gulp.task('watch', function() {
 	gulp.watch('./src/images/**/*', ['copy:images']);
 });
 
-// gulp.task('init', ['clean:all', 'copy:html', 'copy:fonts', 'copy:images', 'copy:vendorStyles', 'styles']);
-gulp.task('init', function(done) {
-	runSequence('clean:all', ['copy:html', 'copy:fonts', 'copy:images', 'copy:vendorStyles', 'copy:vendorIcons', 'styles'], done);
+gulp.task('deploy:surge', function() {
+	return surge({
+		project: './dist',
+		domain: 'klavo.surge.sh'
+	});
 });
 
-// gulp.task('build', ['clean:js', 'build:webpack']);
+gulp.task('init', function(done) {
+	runSequence('clean:all', ['copy:html', 'copy:fonts', 'copy:images', 'copy:vendorIcons', 'styles'], done);
+});
+
 gulp.task('build', function(done) {
-	runSequence('clean:js', ['build:webpack'], done);
+	runSequence('clean:all', 'init', ['build:styles', 'build:webpack'], done);
+});
+
+gulp.task('deploy', function(done) {
+	runSequence('build', ['deploy:surge'], done);
 });
 
 // Default task

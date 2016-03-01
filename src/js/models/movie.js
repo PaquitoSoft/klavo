@@ -1,14 +1,19 @@
 
 function getMediaLinks(rows) {
-	return rows.map(row => {
-		let columns = row.querySelectorAll('td');
-		return {
-			url: columns[0].querySelector('a').getAttribute('href'),
-			service: columns[1].querySelector('span').innerText,
-			language: columns[2].innerText,
-			quality: columns[3].innerText
-		}
-	});	
+	if ( !rows.length || (rows.length === 1 && rows[0].querySelectorAll('td').length < 4) ) {
+		// No media link available
+		return [];
+	} else {
+		return rows.map(row => {
+			let columns = row.querySelectorAll('td');
+			return {
+				url: columns[0].querySelector('a').getAttribute('href'),
+				service: columns[1].querySelector('span').innerText,
+				language: columns[2].innerText,
+				quality: columns[3].innerText
+			}
+		});	
+	}
 }
 
 export default class Movie {
@@ -33,11 +38,21 @@ export default class Movie {
 			let info = data.querySelectorAll('#informacion p');
 
 			this.cpId = cpId;
-			this.title = info[0].innerText;
+			try {
+				this.title = info[0].innerText;
+			} catch(errrr) {
+				console.warn('Movie:', cpId);
+				console.log(errrr.stack);
+			}
+			
 			this.coverUrl = data.querySelector('.ladouno figure img').getAttribute('src');
 			this.year = info[2].innerText;
 			this.genre = info[3].querySelector('a').innerText;
-			this.trailerUrl = data.querySelector('.container_trailer iframe').getAttribute('src');
+
+			let trailerContainer = data.querySelector('.container_trailer iframe');
+			if (trailerContainer) {
+				this.trailerUrl = trailerContainer.getAttribute('src');
+			}
 
 			this.originalTitle = info[1].innerText;
 			this.posterUrl = data.querySelector('.ladodos .background-pelicula').getAttribute('style').match(/url\((.*)\)/[1]);
@@ -48,13 +63,16 @@ export default class Movie {
 			this.mediaOnlineLinks = getMediaLinks([...data.querySelectorAll('#olmt tbody tr')]);
 			this.mediaDownloadLinks = getMediaLinks([...data.querySelectorAll('#dlmt tbody tr')]);
 
-			this.quality = this.mediaOnlineLinks[0].quality;
+			this.quality = '';
 			this.languages = [];
-			this.mediaOnlineLinks.forEach(mediaLink => {
-				if (this.languages.indexOf(mediaLink.language) !== -1) {
-					this.languages.push(mediaLink.language);
-				}
-			});
+			if (this.mediaOnlineLinks.length) {
+				this.quality = this.mediaOnlineLinks[0].quality;
+				this.mediaOnlineLinks.forEach(mediaLink => {
+					if (this.languages.indexOf(mediaLink.language) !== -1) {
+						this.languages.push(mediaLink.language);
+					}
+				});	
+			}
 		}
 
 		this.createdAt = Date.now();
