@@ -1,19 +1,46 @@
 
-function getMediaLinks(rows) {
-	if ( !rows.length || (rows.length === 1 && rows[0].querySelectorAll('td').length < 4) ) {
-		// No media link available
-		return [];
-	} else {
-		return rows.map(row => {
-			let columns = row.querySelectorAll('td');
-			return {
-				url: columns[0].querySelector('a').getAttribute('href'),
-				service: columns[1].querySelector('span').innerText,
-				language: columns[2].innerText,
-				quality: columns[3].innerText
+const languageMap = Object.freeze({
+	'Español': 'es',
+	'Latino': 'ar',
+	'Subtitulado': 'gb_ES'
+});
+const embbedableVideoServices = Object.freeze([
+	'Openload',
+	'Idowatch'
+]);
+
+function getMediaLinks(rows, cpId) {
+	let result = [];
+	if (rows) {
+		result = rows.reduce((links, row) => {
+			let columns = row.querySelectorAll('td');				
+
+			// Sometimes they mix actual links with a non-links message column
+			if (columns.length >= 4) {
+				let urlLink = columns[0].querySelector('a');
+				if (urlLink) {
+					let url = urlLink.getAttribute('href');
+					// There are non-direct links
+					if (!/olimpo/.test(url)) {
+						console.debug('MovieModel::getMediaLinks# Link language:', columns[2].innerText);
+						let videoServiceName = columns[1].querySelector('span').innerText;
+						links.push({
+							url,
+							service: videoServiceName,
+							language: columns[2].innerText,
+							languageCode: languageMap[columns[2].innerText] || 'ie',
+							quality: columns[3].innerText,
+							embeddable: embbedableVideoServices.indexOf(videoServiceName) !== -1
+						});
+					}
+				}
 			}
-		});	
+
+			return links;
+		}, []);
 	}
+
+	return result;
 }
 
 export default class Movie {
@@ -48,6 +75,7 @@ export default class Movie {
 			this.coverUrl = data.querySelector('.ladouno figure img').getAttribute('src');
 			this.year = info[2].innerText;
 			this.genre = info[3].querySelector('a').innerText;
+			this.description = data.querySelector('#enlaces>p').innerText;
 
 			let trailerContainer = data.querySelector('.container_trailer iframe');
 			if (trailerContainer) {
@@ -55,13 +83,13 @@ export default class Movie {
 			}
 
 			this.originalTitle = info[1].innerText;
-			this.posterUrl = data.querySelector('.ladodos .background-pelicula').getAttribute('style').match(/url\((.*)\)/[1]);
+			this.posterUrl = data.querySelector('.ladodos .background-pelicula').getAttribute('style').match(/url\((.*)\)/)[1];
 			this.duration = info[4].innerText;
 			this.rating = info[6].innerText;
 			this.viewCount = data.querySelector('.menu_votos .vistos').innerText;
 
-			this.mediaOnlineLinks = getMediaLinks([...data.querySelectorAll('#olmt tbody tr')]);
-			this.mediaDownloadLinks = getMediaLinks([...data.querySelectorAll('#dlmt tbody tr')]);
+			this.mediaOnlineLinks = getMediaLinks([...data.querySelectorAll('#olmt tbody tr')], cpId);
+			this.mediaDownloadLinks = getMediaLinks([...data.querySelectorAll('#dlmt tbody tr')], cpId);
 
 			this.quality = '';
 			this.languages = [];
