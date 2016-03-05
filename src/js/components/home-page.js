@@ -16,7 +16,7 @@ class HomePage extends React.Component {
 		this.state = {
 			movies: [],
 			newMovies: [],
-			selectedSection: constants.sections.premiers
+			selectedSection: 'none'
 		};
 
 		this.sectionsMovieLoadersMap = {
@@ -33,7 +33,10 @@ class HomePage extends React.Component {
 	loadMovies(section) {
 		this.sectionsMovieLoadersMap[section].call()
 			.then(movies => {
-				this.setState({movies});
+				this.setState({
+					movies,
+					selectedSection: section
+				});
 			})
 			.catch(err => {
 				console.error(err);
@@ -66,7 +69,7 @@ class HomePage extends React.Component {
 	}
 
 	componentDidMount() {
-		this.loadMovies(constants.sections.premiers);		
+		this.loadMovies(this.props.params.section || constants.sections.premiers);
 		
 		eventsManager.on(constants.events.NEW_MOVIES_AVAILABLE, this.onNewMoviesAvailable);
 		eventsManager.on(constants.events.SECTION_SELECTED, this.onNewSectionSelected);
@@ -80,6 +83,18 @@ class HomePage extends React.Component {
 		// 		newMovies: [this.state.movies.pop()]
 		// 	});
 		// }, 5000);
+	}
+
+	componentWillReceiveProps(nextProps) {
+		let newSection = nextProps.params.section || constants.sections.premiers;
+		if (this.state.selectedSection !== newSection) {
+			console.debug('HomePage::componentDidUpdate# Updating home page with new section movies...');
+			this.loadMovies(newSection);
+			this.setState({
+				selectedSection: newSection,
+				movies: []
+			})
+		}
 	}
 
 	componentWillUnmount() {

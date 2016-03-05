@@ -22,6 +22,10 @@ export default {
 		'es': 'Recientes',
 		'en': 'Recently added'
 	},
+	'header.category-none': {
+		'es': '',
+		'en': ''
+	},
 	'home-page.loading-message.1': {
 		'es': 'Danos un momento, por favor.',
 		'en': 'Give us a little moment, please.'
