@@ -5,8 +5,8 @@ const languageMap = Object.freeze({
 	'Subtitulado': 'gb_ES'
 });
 const embbedableVideoServices = Object.freeze([
-	'Openload',
-	'Idowatch'
+	'__Openload',
+	'__Idowatch'
 ]);
 
 function getMediaLinks(rows, cpId) {
