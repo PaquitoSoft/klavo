@@ -4,12 +4,9 @@ import eventsManager from '../plugins/events-manager';
 import constants from '../config/constants';
 import MovieModel from '../models/movie';
 
-const CORS_SERVICE_BASE_URL = 'https://crossorigin.me/';
+// const CORS_SERVICE_BASE_URL = 'https://crossorigin.me/';
+const CORS_SERVICE_BASE_URL = 'http://cors.io/?u=';
 const MOVIES_SERVICE_BASE_URL = 'http://www.clubpelis.com/';
-const PREMIERS_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}genero/estrenos`;
-const MOST_VIEWED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`;
-const BEST_RATED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=2490`;
-const RECENTLY_ADDED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`;
 const MOVIE_DETAILS_BASE_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=`;
 
 const CACHE_LASTUPDATES = 'movies-lastupdates';
@@ -193,11 +190,16 @@ function getSectionMovies(section, moviesLoader, url, elementsSelector, cacheKey
 /* ----------------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------------- */
 
+// const PREMIERS_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}genero/estrenos`;
+// const MOST_VIEWED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`;
+// const BEST_RATED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=2490`;
+// const RECENTLY_ADDED_MOVIES_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`;
+
 export function getPremiers() {
 	return getSectionMovies(
 		constants.sections.premiers,
 		getMoviesSummary,
-		PREMIERS_MOVIES_URL,
+		`${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}genero/estrenos`,
 		'.showpeliculas .postsh',
 		constants.cache.CACHE_PREMIERS_KEY
 	);	
@@ -208,7 +210,7 @@ export function getRecentlyAdded() {
 	return getSectionMovies(
 		constants.sections['recently-added'],
 		getMoviesSummary,
-		RECENTLY_ADDED_MOVIES_URL,
+		`${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`,
 		'.showpeliculas .posthome .postsh',
 		constants.cache.CACHE_RECENTLY_ADDED_KEY		
 	);
@@ -218,7 +220,7 @@ export function getMostViewed() {
 	return getSectionMovies(
 		constants.sections['most-viewed'],
 		getMoviesDetails,
-		MOST_VIEWED_MOVIES_URL,
+		`${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`,
 		'.showpeliculas > .loph3 a',
 		constants.cache.CACHE_MOST_VIEWED_KEY		
 	);
@@ -228,8 +230,12 @@ export function getBestRated() {
 	return getSectionMovies(
 		constants.sections['best-rated'],
 		getMoviesDetails,
-		BEST_RATED_MOVIES_URL,
+		`${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=2490`,
 		'#rating10 .topli10 a',
 		constants.cache.CACHE_BEST_RATED_KEY
 	);
+}
+
+export function getMovie(cpId) {
+	return getMovieDetails(cpId);
 }
