@@ -37,28 +37,12 @@ function getMoviesSummary(url, moviesSelector, cacheKey) {
 			.then(moviesDocument => {
 				console.timeEnd('Load movies summaries');
 
-				/* START Debug
-				let movies;
-				let cachedPremiers = lscache.get(cacheKey) || [];
-
-				if (cachedPremiers.length) {
-					movies = [...moviesDocument.querySelectorAll(moviesSelector)].map(movieEl => {
-						return new MovieModel(movieEl, 'htmlSummaryElement');
-					});
-				} else {
-					let raw = [...moviesDocument.querySelectorAll(moviesSelector)].slice(0, 10);
-					movies = raw.map(movieEl => {
-						return new MovieModel(movieEl, 'htmlSummaryElement');
-					});
-				}
-				/* END  Debug */
-
-
 				console.time('Parse movies');
 				let movies = [...moviesDocument.querySelectorAll(moviesSelector)].map(movieEl => {
 					return new MovieModel(movieEl, 'htmlSummaryElement');
 				});
 				console.timeEnd('Parse movies');
+				
 				resolve(movies);
 			})
 			.catch(reject);
