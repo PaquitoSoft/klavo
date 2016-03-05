@@ -42,7 +42,7 @@ class MovieDetailPage extends React.Component {
 		let movie = this.state.movie;
 
 		if (!movie) {
-			return (<div><LoadingMessage message={getText('movie-detail.loading.message')} /></div>);
+			return (<LoadingMessage message={getText('movie-detail.loading.message')} />);
 		}
 
 		let onlineLinks = movie.mediaOnlineLinks.map((linkInfo, index) => {

@@ -4,6 +4,8 @@ import eventsManager from '../plugins/events-manager';
 import constants from '../config/constants';
 import { getText } from '../plugins/i18n';
 import * as moviesCatalogApi from '../api/movies-catalog';
+import Message from './message';
+import LoadingMessage from './loading-message';
 import MovieSummary from './movie-summary';
 
 class HomePage extends React.Component {
@@ -72,11 +74,34 @@ class HomePage extends React.Component {
 		if (!lscache.get(constants.cache.CACHE_MOST_VIEWED_KEY)) {
 			moviesCatalogApi.getMostViewed();
 		}
+
+		// setTimeout(() => {
+		// 	this.setState({
+		// 		newMovies: [this.state.movies.pop()]
+		// 	});
+		// }, 5000);
 	}
 
 	componentWillUnmount() {
 		eventsManager.off(constants.events.NEW_MOVIES_AVAILABLE, this.onNewMoviesAvailable);
 		eventsManager.off(constants.events.SECTION_SELECTED, this.onNewSectionSelected);
+	}
+
+	getNewMoviesMessage() {
+		let subMessage = (
+			<span>
+				<a href="#" onClick={this.onLoadNewMoviesClick.bind(this)}>{getText('home-page.new-premiers-message.2')}</a>
+				{getText('home-page.new-premiers-message.3')}
+			</span>
+		);
+		return (
+			<Message
+				messageClasses="new-movies-available-msg"
+				iconClasses="refresh"
+				message={getText('home-page.new-premiers-message.1')}
+				subMessage={subMessage}
+			/>
+		);
 	}
 
 	render() {
@@ -88,33 +113,15 @@ class HomePage extends React.Component {
 			});
 		} else {
 			movies = (
-				<div className="ui icon message loading-message">
-					<i className="notched circle loading icon"></i>
-					<div className="content">
-						<div className="header">
-							{getText('home-page.loading-message.1')}
-						</div>
-						<p>{getText('home-page.loading-message.2')}</p>
-					</div>
-				</div>
+				<LoadingMessage
+					message={getText('movie-detail.loading.message')}
+					subMessage={getText('home-page.loading-message.2')}
+				/>
 			);
 		}
 
 		if (this.state.newMovies.length) {
-			newMoviesAvailableMessage = (
-				<div className="ui icon message new-movies-available-msg">
-					<i className="refresh icon"></i>
-					<div className="content">
-						<div className="header">
-							{getText('home-page.new-premiers-message.1')}
-						</div>
-						<p>
-							<a href="#" onClick={this.onLoadNewMoviesClick.bind(this)}>{getText('home-page.new-premiers-message.2')}</a>
-							{getText('home-page.new-premiers-message.3')}
-						</p>
-					</div>
-				</div>
-			);
+			newMoviesAvailableMessage = this.getNewMoviesMessage();
 		}
 
 		return (
