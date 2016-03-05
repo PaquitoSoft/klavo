@@ -41,5 +41,9 @@ export default {
 	'home-page.new-premiers-message.3': {
 		'es': 'para cargarlos.',
 		'en': 'to load them.'
+	},
+	'movie-detail.loading.message': {
+		'es': 'Cargando los datos de la película...',
+		'en': 'Loading movie details...'
 	}
 };

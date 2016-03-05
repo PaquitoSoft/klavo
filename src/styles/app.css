@@ -12,6 +12,9 @@
 @import "../vendor/semantic/dist/components/icon.css";
 @import "../vendor/semantic/dist/components/message.css";
 @import "../vendor/semantic/dist/components/card.css";
+@import "../vendor/semantic/dist/components/item.css";
+@import "../vendor/semantic/dist/components/label.css";
+@import "../vendor/semantic/dist/components/flag.css";
 
 body {
 	background-color: #ffffff;
@@ -23,6 +26,7 @@ body {
 
 .main.container {
 	margin-top: 7em;
+	min-height: 40em;
 }
 
 .wireframe {
@@ -35,14 +39,36 @@ body {
 }
 
 /* ------------------------------------------ */
-.home-page {
-	min-height: 40em;
-
-	.new-movies-available-msg,
-	.message.loading-message {
-		max-width: 30em;
-		margin: 1em 0 1em 0;
+.movie-detail-page {
+	.video-player-container {
+		margin-bottom: 10px;
 	}
+	.lang-label {
+		cursor: pointer;
+		border: 1px solid;
+		border-color: #fff;
+		&:hover {
+			background: none #FFFFFF !important;
+			border: 1px solid rgba(34, 36, 38, 0.15);
+			color: rgba(0, 0, 0, 0.87) !important;
+			box-shadow: none;
+		}
+		a {
+			opacity: 1;
+		}
+	}
+	.video-player-container {
+		img, iframe {
+			min-width: 500px;
+			min-height: 281px;
+		}
+	}
+}
+
+.new-movies-available-msg,
+.message.loading-message {
+	max-width: 30em;
+	margin: 1em 0 1em 0;
 }
 
 /* I need this selector to not use an !important and be able to overwrite framework width */
@@ -52,5 +78,14 @@ body {
 
 	& > .movie-info {
 		padding-bottom: 0;
+	}
+	a {
+		color: #000;
+		& > img {
+			display: block;
+			width: 100%;
+			height: auto;
+			border-radius: inherit;
+		}
 	}
 }
