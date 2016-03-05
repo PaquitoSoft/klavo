@@ -67,7 +67,11 @@ class HomePage extends React.Component {
 		this.loadMovies(constants.sections.premiers);		
 		
 		eventsManager.on(constants.events.NEW_MOVIES_AVAILABLE, this.onNewMoviesAvailable);
-		eventsManager.on(constants.events.SECTION_SELECTED, this.onNewSectionSelected);	
+		eventsManager.on(constants.events.SECTION_SELECTED, this.onNewSectionSelected);
+
+		if (!lscache.get(constants.cache.CACHE_MOST_VIEWED_KEY)) {
+			moviesCatalogApi.getMostViewed();
+		}
 	}
 
 	componentWillUnmount() {
