@@ -13,7 +13,7 @@ class MovieDetailPage extends React.Component {
 			selectedOnlineLinkIndex: -1
 		};
 	}
-	
+
 	componentDidMount() {
 		getMovie(this.props.params.cpId)
 			.then(movie => {
@@ -25,7 +25,7 @@ class MovieDetailPage extends React.Component {
 				console.error('MovieDetailPage::componentDidMount# Could not load movie detail:', error);
 				console.error(error.stack);
 			});
-	}	
+	}
 
 	onlineLinkSelected(linkInfo, selectedOnlineLinkIndex, event) {
 		console.debug('MovieDetailPage::onlineLinkSelected# Selected URL:', linkInfo);
@@ -57,7 +57,7 @@ class MovieDetailPage extends React.Component {
 			}
 
 			return (
-				<div key={index} 
+				<div key={index}
 					onClick={this.onlineLinkSelected.bind(this, linkInfo, index)}
 					className={`ui label lang-label ${labelClass}`}>
 					<a href={linkInfo.url} target="_blank">
@@ -73,8 +73,8 @@ class MovieDetailPage extends React.Component {
 		}
 
 		return (
-			<div className="ui grid movie-detail-page">
-				<div className="eight wide column">
+			<div className="ui two column stackable grid movie-detail-page">
+				<div className="column">
 					<div className="row video-player-container">
 						{video}
 					</div>
@@ -84,7 +84,7 @@ class MovieDetailPage extends React.Component {
 						</div>
 					</div>
 				</div>
-				<div className="eight wide column">
+				<div className="column">
 					<div className="ui items">
 						<div className="item">
 							<div className="content">
