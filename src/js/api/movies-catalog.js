@@ -5,7 +5,8 @@ import constants from '../config/constants';
 import MovieModel from '../models/movie';
 
 // const CORS_SERVICE_BASE_URL = 'https://crossorigin.me/';
-const CORS_SERVICE_BASE_URL = 'http://cors.io/?u=';
+// const CORS_SERVICE_BASE_URL = 'http://cors.io/?u=';
+const CORS_SERVICE_BASE_URL = 'http://psscp.herokuapp.com/';
 const MOVIES_SERVICE_BASE_URL = 'http://www.clubpelis.com/';
 const MOVIE_DETAILS_BASE_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=`;
 
@@ -42,7 +43,7 @@ function getMoviesSummary(url, moviesSelector, cacheKey) {
 					return new MovieModel(movieEl, 'htmlSummaryElement');
 				});
 				console.timeEnd('Parse movies');
-				
+
 				resolve(movies);
 			})
 			.catch(reject);
@@ -77,7 +78,7 @@ function getMovieDetails(movieCpId) {
 				})
 				.catch(reject);
 		});
-	}	
+	}
 }
 
 function getMoviesByIds(identifiers) {
@@ -144,7 +145,7 @@ function getSectionMovies(section, moviesLoader, url, elementsSelector, cacheKey
 
 	if (cachedPremiers) {
 		console.debug('MoviesCatalogApi::getSectionMovies# Returning cached movies...');
-	
+
 		setTimeout(function() {
 			// Only update movies after one day has passed since the last time we did it
 			if (!lastUpdates[section] || (Date.now() - lastUpdates[section]) > UPDATE_CACHED_MOVIES_INTERVAL) {
@@ -156,7 +157,7 @@ function getSectionMovies(section, moviesLoader, url, elementsSelector, cacheKey
 					});
 			}
 		}, 200);
-		
+
 		return Promise.resolve(cachedPremiers);
 
 	} else {
@@ -186,7 +187,7 @@ export function getPremiers() {
 		`${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}genero/estrenos`,
 		'.showpeliculas .postsh',
 		constants.cache.CACHE_PREMIERS_KEY
-	);	
+	);
 }
 
 
@@ -196,7 +197,7 @@ export function getRecentlyAdded() {
 		getMoviesSummary,
 		`${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`,
 		'.showpeliculas .posthome .postsh',
-		constants.cache.CACHE_RECENTLY_ADDED_KEY		
+		constants.cache.CACHE_RECENTLY_ADDED_KEY
 	);
 }
 
@@ -206,7 +207,7 @@ export function getMostViewed() {
 		getMoviesDetails,
 		`${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`,
 		'.showpeliculas > .loph3 a',
-		constants.cache.CACHE_MOST_VIEWED_KEY		
+		constants.cache.CACHE_MOST_VIEWED_KEY
 	);
 }
 
