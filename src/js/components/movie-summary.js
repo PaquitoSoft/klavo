@@ -5,13 +5,13 @@ export default function MovieSummary(props) {
 	return (
 		<div className="card movie-summary">
 			<div className="image">
-				<a href={`/movie/${movie.cpId}`}>
+				<a href={`/movie/${movie.slug}`}>
 					<img src={movie.coverUrl} alt={movie.title} />
 				</a>
 			</div>
 			<div className="content movie-info">
 				<div className="header">
-					<a href={`/movie/${movie.cpId}`}>{movie.title}</a>
+					<a href={`/movie/${movie.slug}`}>{movie.title}</a>
 				</div>
 				<div className="meta">
 					<span>{movie.genre}</span>
@@ -24,5 +24,5 @@ export default function MovieSummary(props) {
 				<span>{movie.quality}</span>
 			</div>
 		</div>
-	);	
+	);
 }

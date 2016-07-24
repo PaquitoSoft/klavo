@@ -56,12 +56,21 @@ class MovieDetailPage extends React.Component {
 				labelClass = 'green';
 			}
 
+			// return (
+			// 	<div key={index}
+			// 		onClick={this.onlineLinkSelected.bind(this, linkInfo, index)}
+			// 		className={`ui label lang-label ${labelClass}`}>
+			// 		<a href={linkInfo.url} target="_blank">
+			// 			<i className={`${langCode} flag`}></i> {linkInfo.quality}
+			// 		</a>
+			// 	</div>
+			// );
 			return (
 				<div key={index}
 					onClick={this.onlineLinkSelected.bind(this, linkInfo, index)}
 					className={`ui label lang-label ${labelClass}`}>
 					<a href={linkInfo.url} target="_blank">
-						<i className={`${langCode} flag`}></i> {linkInfo.quality}
+						<i className={`${langCode} flag`}></i> {movie.quality}
 					</a>
 				</div>
 			);
@@ -74,7 +83,7 @@ class MovieDetailPage extends React.Component {
 
 		return (
 			<div className="ui two column stackable grid movie-detail-page">
-				<div className="column">
+				<div className="column media-section">
 					<div className="row video-player-container">
 						{video}
 					</div>
@@ -84,14 +93,14 @@ class MovieDetailPage extends React.Component {
 						</div>
 					</div>
 				</div>
-				<div className="column">
+				<div className="column info-section">
 					<div className="ui items">
 						<div className="item">
 							<div className="content">
 								<span className="header">{movie.title}</span>
 								<div className="meta">
-									<div className="ui basic label">Año: {movie.year}</div>
-									<div className="ui basic label">Género: {movie.genre}</div>
+									<div className="ui basic label">Fecha publicación: {movie.datePublished}</div>
+									<div className="ui basic label">Género: {movie.genres}</div>
 								</div>
 								<div className="description">
 									<p>{movie.description}</p>

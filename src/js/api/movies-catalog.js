@@ -4,17 +4,22 @@ import eventsManager from '../plugins/events-manager';
 import constants from '../config/constants';
 import MovieModel from '../models/movie';
 
+const IS_CACHE_ENABLED = true;
+
 // const CORS_SERVICE_BASE_URL = 'https://crossorigin.me/';
 // const CORS_SERVICE_BASE_URL = 'http://cors.io/?u=';
 const CORS_SERVICE_BASE_URL = 'http://psscp.herokuapp.com/';
-const MOVIES_SERVICE_BASE_URL = 'http://www.clubpelis.com/';
-const MOVIE_DETAILS_BASE_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=`;
+// const MOVIES_SERVICE_BASE_URL = 'http://www.clubpelis.com/';
+const MOVIES_SERVICE_BASE_URL = 'http://www.mirohd.com/';
+// const MOVIE_DETAILS_BASE_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}?p=`;
+const MOVIE_DETAILS_BASE_URL = `${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}`;
 
 const CACHE_LASTUPDATES = 'movies-lastupdates';
 const CACHE_MOVIE_DETAIL_KEY = 'movie-detail-';
-const CACHE_MOVIES_TTL = 60 /* minutes */ * 24 /* hours */ * 30 /* days */; // One month (minutes)
-// const CACHE_MOVIES_TTL = 10;
-const CACHE_MOVIE_DETAIL_TTL = 60 * 24 * 1; // One day (minutes)
+// const CACHE_MOVIES_TTL = 60 /* minutes */ * 24 /* hours */ * 30 /* days */; // One month (minutes)
+const CACHE_MOVIES_TTL = 0;
+// const CACHE_MOVIE_DETAIL_TTL = 60 * 24 * 1; // One day (minutes)
+const CACHE_MOVIE_DETAIL_TTL = 0;
 
 const UPDATE_CACHED_MOVIES_INTERVAL = 1 * 24 * 60 * 60 * 1000; // One day (milliseconds)
 // const UPDATE_CACHED_MOVIES_INTERVAL = 10 * 1000;
@@ -54,7 +59,7 @@ function getMovieDetails(movieCpId) {
 	let movieCacheKey = `${CACHE_MOVIE_DETAIL_KEY}${movieCpId}`,
 		cachedMovie = lscache.get(movieCacheKey);
 
-	if (cachedMovie) {
+	if (cachedMovie && IS_CACHE_ENABLED) {
 		return Promise.resolve(cachedMovie);
 	} else {
 		return new Promise((resolve, reject) => {
@@ -63,9 +68,9 @@ function getMovieDetails(movieCpId) {
 				.then(movieDocument => {
 					console.timeEnd('Load movie detail');
 
-					// Sometime I get an empty body response
+					// Sometimes I get an empty body response
 					let documentBody = movieDocument.querySelector('body');
-					if (!documentBody.querySelector('#informacion')) {
+					if (!documentBody.querySelector('#contenedor')) {
 						console.warn('There was a problem requeting movie', movieCpId);
 						resolve(null);
 					} else {
@@ -140,10 +145,10 @@ function updateMovies(moviesLoader, url, elementsSelector, cacheKey) {
 }
 
 function getSectionMovies(section, moviesLoader, url, elementsSelector, cacheKey) {
-	const cachedPremiers = lscache.get(cacheKey),
+	const cachedMovies = lscache.get(cacheKey),
 		lastUpdates = lscache.get(CACHE_LASTUPDATES) || {};
 
-	if (cachedPremiers) {
+	if (cachedMovies && cachedMovies.length && IS_CACHE_ENABLED) {
 		console.debug('MoviesCatalogApi::getSectionMovies# Returning cached movies...');
 
 		setTimeout(function() {
@@ -158,7 +163,7 @@ function getSectionMovies(section, moviesLoader, url, elementsSelector, cacheKey
 			}
 		}, 200);
 
-		return Promise.resolve(cachedPremiers);
+		return Promise.resolve(cachedMovies);
 
 	} else {
 		return moviesLoader(url, elementsSelector, cacheKey)
@@ -184,8 +189,9 @@ export function getPremiers() {
 	return getSectionMovies(
 		constants.sections.premiers,
 		getMoviesSummary,
-		`${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}genero/estrenos`,
-		'.showpeliculas .postsh',
+		`${CORS_SERVICE_BASE_URL}${MOVIES_SERVICE_BASE_URL}peliculas/estrenos`,
+		// '.showpeliculas .postsh',
+		'.peliculas .item',
 		constants.cache.CACHE_PREMIERS_KEY
 	);
 }
